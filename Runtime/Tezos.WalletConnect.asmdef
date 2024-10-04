@@ -1,0 +1,20 @@
+{
+    "name": "Tezos.WalletConnect",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b60df1cfa722f47e59ced3e589b14c36",
+        "GUID:a36d4ab4ac1445529d56bb1978202fe9",
+        "GUID:61d2357f46164d61830c7393d329d506",
+        "GUID:33de4d868b803453e9e80bc244c66263",
+        "GUID:3ab1d7df9cbaa4bdc917f69884d6565a"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
