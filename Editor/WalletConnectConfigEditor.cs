@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using Tezos.Editor;
 using Tezos.MessageSystem;
 using UnityEditor;
@@ -19,3 +20,4 @@ namespace Tezos.WalletConnect.Editor
 		}
 	}
 }
+#endif
