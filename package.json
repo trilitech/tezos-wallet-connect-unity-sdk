@@ -16,7 +16,7 @@
 	"com.reown.sign.unity"           : "1.0.0",
 	"com.reown.sign.nethereum"       : "1.0.0",
 	"com.reown.sign.nethereum.unity" : "1.0.0",
-	"com.reown.appkit.unity"         : "1.0.0"
+	"com.reown.appkit.unity"         : "1.0.1"
   },
   "keywords"        : [
 	"tezos",
