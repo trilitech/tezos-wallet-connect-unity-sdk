@@ -75,6 +75,7 @@ namespace Tezos.WalletConnect
 		private UniTaskCompletionSource<bool>               _walletDisconnectionTcs;
 		private WalletProviderData                          _walletProviderData;
 		private Rpc                                         _rpc;
+		private TezosConfig                                 _tezosConfig;
 
 		public WalletType        WalletType        => WalletType.WALLETCONNECT;
 		public EvmService        EvmService        => AppKit.Evm;
@@ -83,7 +84,8 @@ namespace Tezos.WalletConnect
 
 		public async UniTask Init()
 		{
-			_rpc = new(5);
+			_tezosConfig = ConfigGetter.GetOrCreateConfig<TezosConfig>();
+			_rpc         = new(_tezosConfig.RequestTimeoutSeconds);
 			var appKitCore = Resources.Load<AppKitCore>("Reown AppKit");
 			var appKit     = Object.Instantiate(appKitCore);
 			Object.DontDestroyOnLoad(appKit);
