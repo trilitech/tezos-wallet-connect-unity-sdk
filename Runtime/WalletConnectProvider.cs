@@ -131,7 +131,7 @@ namespace Tezos.WalletConnect
 			try
 			{
 				balance = jsonRpcResponse.Result.Substring(2);
-				balance = BigInteger.Parse(balance, NumberStyles.HexNumber).ToString().Substring(0, 6);
+				balance = BigInteger.Parse("0" + balance, NumberStyles.HexNumber).ToString().Substring(0, 6);
 			}
 			catch (Exception e)
 			{
