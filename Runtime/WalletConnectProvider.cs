@@ -4,12 +4,11 @@ using System.Globalization;
 using System.IO;
 using System.Numerics;
 using Beacon.Sdk.Beacon.Permission;
-using Newtonsoft.Json; // todo: this needs to be removed later
+using Newtonsoft.Json;
 using Reown.AppKit.Unity;
 using Tezos.Configs;
 using Tezos.Cysharp.Threading.Tasks;
 using Tezos.Logger;
-using Tezos.MainThreadDispatcher;
 using Tezos.MessageSystem;
 using Tezos.Operation;
 using Tezos.Request;
@@ -24,21 +23,16 @@ namespace Tezos.WalletConnect
 		public class JsonRpcResponse
 		{
 			[JsonProperty("jsonrpc")] public string JsonRpcVersion { get; set; }
-
-			[JsonProperty("result")] public string Result { get; set; }
-
-			[JsonProperty("id")] public int Id { get; set; }
+			[JsonProperty("result")]  public string Result         { get; set; }
+			[JsonProperty("id")]      public int    Id             { get; set; }
 		}
 
 		public class JsonRpcPayload
 		{
-			[JsonProperty("jsonrpc")] public string JsonRpcVersion { get; set; } = "2.0";
-
-			[JsonProperty("method")] public string Method { get; set; } = "eth_getBalance";
-
-			[JsonProperty("params")] public string[] Params { get; set; }
-
-			[JsonProperty("id")] public int Id { get; set; } = 1;
+			[JsonProperty("jsonrpc")] public string   JsonRpcVersion { get; set; } = "2.0";
+			[JsonProperty("method")]  public string   Method         { get; set; } = "eth_getBalance";
+			[JsonProperty("params")]  public string[] Params         { get; set; }
+			[JsonProperty("id")]      public int      Id             { get; set; } = 1;
 		}
 
 		private static readonly Chain ETHERLINK_TESTNET = new(
@@ -50,7 +44,7 @@ namespace Tezos.WalletConnect
 		                                                      "https://node.ghostnet.etherlink.com",
 		                                                      true,
 		                                                      "https://etherlink.com/opengraph-image.png?4dd162b94a289c06",
-		                                                      "etherlink-testnet"
+		                                                      "etherlinkTestnet"
 		                                                     );
 
 		private static readonly Chain ETHERLINK_MAINNET = new(
@@ -62,7 +56,7 @@ namespace Tezos.WalletConnect
 		                                                      "https://node.mainnet.etherlink.com",
 		                                                      false,
 		                                                      "https://etherlink.com/opengraph-image.png?4dd162b94a289c06",
-		                                                      "etherlink-mainnet"
+		                                                      "etherlink"
 		                                                     );
 
 		private Chain _selectedChain;
@@ -77,10 +71,7 @@ namespace Tezos.WalletConnect
 		private Rpc                                         _rpc;
 		private TezosConfig                                 _tezosConfig;
 
-		public WalletType        WalletType        => WalletType.WALLETCONNECT;
-		public EvmService        EvmService        => AppKit.Evm;
-		public AccountController AccountController => AppKit.AccountController;
-		public NetworkController NetworkController => AppKit.NetworkController;
+		public WalletType WalletType => WalletType.WALLETCONNECT;
 
 		public async UniTask Init()
 		{
@@ -103,23 +94,24 @@ namespace Tezos.WalletConnect
 			                                                )
 			                                   );
 
-			var network = ConfigGetter.GetOrCreateConfig<DataProviderConfig>().Network;
+			var network = ConfigGetter.GetOrCreateConfig<TezosConfig>().Network;
 			if (network      == NetworkType.ghostnet) _selectedChain = ETHERLINK_TESTNET;
 			else if (network == NetworkType.mainnet) _selectedChain  = ETHERLINK_MAINNET;
 			else throw new NotSupportedException($"Network {network} is not supported in wallet connect");
 
-			var supportedChains = new List<Chain>(appKitConfig.supportedChains)
+			var supportedChains = new List<Chain>
 			                      {
-				                      ETHERLINK_MAINNET,
-				                      ETHERLINK_TESTNET
+				                      _selectedChain
 			                      };
-
 			appKitConfig.supportedChains = supportedChains.ToArray();
 
 			await AppKit.InitializeAsync(appKitConfig);
+			await AppKit.ConnectorController.TryResumeSessionAsync();
 			TezosLogger.LogInfo($"Wallet connect IsAccountConnected:{AppKit.IsAccountConnected}");
+			TezosLogger.LogInfo($"AppKit version:{AppKit.Version}");
 			AppKit.AccountConnected    += OnAccountConnected;
 			AppKit.AccountDisconnected += OnAccountDisconnected;
+			AppKit.AccountChanged      += OnAccountChanged;
 		}
 
 		public async UniTask<string> GetBalance(string walletAddress)
@@ -161,6 +153,8 @@ namespace Tezos.WalletConnect
 			_walletDisconnectionTcs?.TrySetResult(true);
 		}
 
+		private void OnAccountChanged(object sender, Connector.AccountChangedEventArgs accountChangedEventArgs) { Debug.Log($"Account changed, address: {accountChangedEventArgs.Account.Address} - chain id: {accountChangedEventArgs.Account.ChainId}"); }
+
 		public UniTask<WalletProviderData> Connect(WalletProviderData data)
 		{
 			_walletProviderData  = data;
@@ -185,24 +179,17 @@ namespace Tezos.WalletConnect
 
 		public bool IsAlreadyConnected() => AppKit.IsAccountConnected;
 
-		public UniTask DeployContract(DeployContractRequest originationRequest) => throw new NotSupportedException("Contract origination is not supported by wallet connect.");
+		public UniTask DeployContract(DeployContractRequest originationRequest) => throw new NotSupportedException("Contract origination is not supported by wallet connect and only available in tezos.");
 
 		public async UniTask<SignPayloadResponse> RequestSignPayload(SignPayloadRequest signRequest)
 		{
-			var signature = await EvmService.SignMessageAsync(signRequest.Payload);
+			var signature = await AppKit.Evm.SignMessageAsync(signRequest.Payload);
 			return new SignPayloadResponse
 			       {
 				       Signature = signature,
 			       };
 		}
 
-		public async UniTask<OperationResponse> RequestOperation(OperationRequest operationRequest)
-		{
-			var transactionResult = await EvmService.WriteContractAsync(operationRequest.Destination, operationRequest.ContractABI, operationRequest.EntryPoint, operationRequest.Arg);
-			return new OperationResponse
-			       {
-				       TransactionHash = transactionResult,
-			       };
-		}
+		public UniTask<OperationResponse> RequestOperation(OperationRequest operationRequest) => throw new NotSupportedException("Request operation is not supported by wallet connect. Use directly AppKit.Evm methods.");
 	}
 }
