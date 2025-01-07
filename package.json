@@ -7,8 +7,8 @@
   "dependencies"    : {
 	"com.unity.nuget.newtonsoft-json": "3.2.1",
 	"com.nethereum.unity"            : "4.26.0",
-	"com.reown.unity.dependencies"   : "1.1.2",
-	"com.reown.appkit.unity"         : "1.1.2"
+	"com.reown.unity.dependencies"   : "1.2.0",
+	"com.reown.appkit.unity"         : "1.2.0"
   },
   "keywords"        : [
 	"tezos",
