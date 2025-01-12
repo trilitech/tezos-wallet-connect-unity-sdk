@@ -1,6 +1,6 @@
 {
   "name"            : "com.trilitech.tezos-wallet-connect",
-  "version"         : "0.1.0",
+  "version"         : "0.1.2",
   "unity"           : "2022.3",
   "displayName"     : "Tezos Wallet Connect",
   "description"     : "Wallet connect package that works with tezos unity sdk.",
